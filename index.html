@@ -1,62 +1,62 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>QR Code Attendance</title>
-    <script>
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(sendData, showError);
-            } else {
-                alert("Geolocation is not supported by this browser.");
-            }
-        }
-
-        function sendData(position) {
-            let mobile = document.getElementById("mobile").value;
-            let status = document.getElementById("status").value;
-            let latitude = position.coords.latitude;
-            let longitude = position.coords.longitude;
-
-            if (mobile.trim() === "") {
-                alert("Please enter your mobile number");
-                return;
-            }
-
-            let url = "https://script.google.com/macros/s/AKfycbwFMmvItKz3_ok89mzEBtKk2f_EjHaCClB1unOplrta4MHeg59V30SZaLC1FPyVTSwcuA/exec"; // Replace with your Google Apps Script URL
-
-            let data = {
-                mobile: mobile,
-                status: status,
-                latitude: latitude,
-                longitude: longitude
-            };
-
-            fetch(url, {
-                method: "POST",
-                body: JSON.stringify(data),
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-            })
-            .catch(error => console.error("Error:", error));
-        }
-
-        function showError(error) {
-            alert("Error fetching location: " + error.message);
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Attendance</title>
 </head>
 <body>
-    <h2>QR Code Attendance</h2>
-    <label>Mobile Number:</label>
-    <input type="text" id="mobile" required><br>
-    <label>Status:</label>
-    <select id="status">
-        <option value="Check-in">Check-in</option>
-        <option value="Check-out">Check-out</option>
-    </select><br>
-    <button onclick="getLocation()">Mark Attendance</button>
+  <h1>Employee Attendance</h1>
+  <div>
+    <label for="mobile">Mobile Number:</label>
+    <input type="text" id="mobile" required>
+    <button onclick="checkAttendance()">Check-In</button>
+  </div>
+  <div id="message"></div>
+
+  <script>
+    function checkAttendance() {
+      const mobile = document.getElementById('mobile').value;
+      if (!mobile) {
+        document.getElementById('message').innerText = 'Please enter your mobile number.';
+        return;
+      }
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          // Send data to Google Apps Script
+          const data = {
+            mobile: mobile,
+            latitude: latitude,
+            longitude: longitude,
+            status: 'in'
+          };
+
+          fetch('https://script.google.com/macros/s/AKfycbwFMmvItKz3_ok89mzEBtKk2f_EjHaCClB1unOplrta4MHeg59V30SZaLC1FPyVTSwcuA/exec', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          })
+          .then(response => response.json())
+          .then(result => {
+            document.getElementById('message').innerText = result.message;
+          })
+          .catch(error => {
+            document.getElementById('message').innerText = 'Error: ' + error.message;
+          });
+        }, error => {
+          document.getElementById('message').innerText = 'Error getting location: ' + error.message;
+        });
+      } else {
+        document.getElementById('message').innerText = 'Geolocation is not supported by this browser.';
+      }
+    }
+  </script>
 </body>
 </html>
